@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import os
 import ssl
 import shutil
@@ -37,14 +36,20 @@ class M3U8Downloader:
         self.segment_urls = []
 
     def fetch_m3u8(self):
-        resp = requests.get(self.m3u8_url, headers=HEADERS, verify=False, timeout=10)
-        resp.raise_for_status()
-        content = resp.text
         os.makedirs(self.cache_dir, exist_ok=True)
-        with open(f"{self.cache_dir}/playlist.m3u8", "w", encoding="utf-8") as f:
-            f.write(content)
-        return content
-
+        if self.m3u8_url.startswith("http"):
+            resp = requests.get(self.m3u8_url, headers=HEADERS, verify=False, timeout=10)
+            resp.raise_for_status()
+            content = resp.text
+            with open(f"{self.cache_dir}/playlist.m3u8", "w", encoding="utf-8") as f:
+                f.write(content)
+            return content
+        else:
+            if os.path.exists(self.m3u8_url):
+                with open(self.m3u8_url,mode="r",encoding="utf-8") as f:
+                    content = f.read()
+            return content
+        
     def parse_m3u8(self, content):
         lines = content.splitlines()
         base_url = self.m3u8_url.rsplit("/", 1)[0] + "/"
@@ -182,7 +187,7 @@ class M3U8Downloader:
 
 def main():
     parser = argparse.ArgumentParser(description="M3U8 视频下载器")
-    parser.add_argument("url", help="M3U8 文件的 URL")
+    parser.add_argument("url", type=str,help="M3U8 文件的 URL, 也可以传入本地M3U8文件路径")  
     parser.add_argument("-o", "--output", default="video.ts", help="输出文件名 (默认: video.ts)")
     parser.add_argument("-c", "--concurrent", type=int, default=10, help="并发下载数 (默认: 10)")
     args = parser.parse_args()
