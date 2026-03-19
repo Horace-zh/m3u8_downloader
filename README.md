@@ -6,4 +6,4 @@ python script.py https://example.com/video.m3u8
 # --output newname
 python script.py https://example.com/video.m3u8 --output video.ts
 # --concurrent 
-python script.py https://example.com/video.m3u8 --output video.ts -concurrent 50
+python script.py https://example.com/video.m3u8 --output video.ts --concurrent 50
