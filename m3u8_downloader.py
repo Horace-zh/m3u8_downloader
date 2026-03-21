@@ -1,3 +1,4 @@
+#!/home/horace/mypy3/bin/python3
 import re 
 import m3u8
 import os, sys
@@ -11,8 +12,7 @@ from rich.progress import Progress, BarColumn, TaskProgressColumn, TransferSpeed
 
 console = Console()
 
-headers = {}
-headers_async = {"user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"}
+HEADERS = {"user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"}
 
 def log(msg, level="info"):
     time_str = datetime.now().strftime("%H:%M:%S")
@@ -61,7 +61,7 @@ async def download_single(idx, url, cache_dir, progress_task, progress, total, k
     for retry in range(1, max_retries+1):
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers= headers_async) as resp:
+                async with session.get(url, headers= HEADERS) as resp:
                     if resp.status == 200:
                         chunk = await resp.read()
                         if key:
@@ -128,14 +128,12 @@ def merge_segments(cache_dir, outfile, keep=False):
 
 def main():
     parser = argparse.ArgumentParser(description="m3u8 Downloader")
-    parser.add_argument("source", help="m3u8文件URL或本地路径")
+    parser.add_argument("source", help="m3u8文件URL")
     parser.add_argument("-o", "--output", default="output.mp4",     help="输出文件路径" )
-    parser.add_argument("-c", "--concurrent", type=int, default=10, help="并发下载数"   )
-    parser.add_argument("-r", "--retries",    type=int, default=16, help="单分片最大重试")
-    parser.add_argument("-k", "--keep", action="store_true",        help="合并后保留分片")
+    parser.add_argument("-c", "--concurrent", type=int, default=10, help="并发下载数量" )
     args = parser.parse_args()
 
-    log("🎬 M3U8下载器")
+    log("🎬 M3U8下载器   (Tips: 下载中的大部分报错问题都出在设置请求头上面～)")
     playlist, key, iv = parse_m3u8(args.source)
     if not playlist or not playlist.segments:
         log("m3u8无效或未找到分片", "fail")
@@ -151,7 +149,6 @@ def main():
             concurrent=args.concurrent,
             key=key,
             iv=iv,
-            max_retries=args.retries
         )
     )
     
